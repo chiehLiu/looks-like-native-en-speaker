@@ -49,11 +49,13 @@ The app calls an AI API from the Tauri Rust backend. To switch providers, update
 
 ```bash
 # Google Gemini (default, free tier available)
-VITE_GEMINI_API_KEY=your-gemini-key
+GEMINI_API_KEY=your-gemini-key
 
 # To get a free Gemini key:
 # Go to https://aistudio.google.com/apikey → Create API Key
 ```
+
+Note: The API key is read by the Rust backend at runtime via `std::env::var`, so it is never embedded in the frontend JS bundle.
 
 ### 2. Change the model in `apps/desktop/src-tauri/src/lib.rs`
 
@@ -68,7 +70,7 @@ Find the API URL line and swap the model name:
 // gemini-2.0-flash (if your account has quota)
 ```
 
-To switch to a completely different provider (Claude, OpenAI), you'll need to update the request format and response parsing in `lib.rs`, and the env variable name in both `lib.rs` and `App.vue`.
+To switch to a completely different provider (Claude, OpenAI), you'll need to update the request format and response parsing in `lib.rs`, and the env variable name in `lib.rs`.
 
 ## Project Structure
 
