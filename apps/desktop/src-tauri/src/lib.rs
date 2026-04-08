@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
 #[derive(Serialize, Deserialize)]
 struct RewriteResult {
@@ -129,8 +130,10 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, shortcut, _event| {
-                    if shortcut.key == tauri_plugin_global_shortcut::Code::KeyF {
+                .with_handler(|app, shortcut, event| {
+                    if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed
+                        && shortcut.key == Code::KeyL
+                    {
                         if let Some(window) = app.get_webview_window("main") {
                             if window.is_visible().unwrap_or(false) {
                                 let _ = window.hide();
@@ -143,6 +146,11 @@ pub fn run() {
                 })
                 .build(),
         )
+        .setup(|app| {
+            let shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyL);
+            app.global_shortcut().register(shortcut)?;
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![rewrite, toggle_window])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
