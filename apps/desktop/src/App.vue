@@ -20,14 +20,8 @@ const error = ref("");
 const copied = ref<string | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
 async function rewrite() {
   if (!input.value.trim() || loading.value) return;
-  if (!API_KEY || API_KEY === "your-api-key-here") {
-    error.value = "Set VITE_GEMINI_API_KEY in .env";
-    return;
-  }
 
   loading.value = true;
   error.value = "";
@@ -36,7 +30,6 @@ async function rewrite() {
   try {
     result.value = await invoke<RewriteResult>("rewrite", {
       text: input.value,
-      apiKey: API_KEY,
     });
   } catch (e) {
     error.value = String(e);

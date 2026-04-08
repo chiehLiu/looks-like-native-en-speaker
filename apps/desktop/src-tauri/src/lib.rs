@@ -31,7 +31,10 @@ struct Part {
 }
 
 #[tauri::command]
-async fn rewrite(text: String, api_key: String) -> Result<RewriteResult, String> {
+async fn rewrite(text: String) -> Result<RewriteResult, String> {
+    let api_key = std::env::var("GEMINI_API_KEY")
+        .map_err(|_| "GEMINI_API_KEY not set. Add it to your environment.".to_string())?;
+
     let client = reqwest::Client::new();
 
     let prompt = format!(
@@ -80,14 +83,17 @@ Respond ONLY in this exact JSON format, no markdown, no code fences:
         .map_err(|e| format!("Request failed: {}", e))?;
 
     let status = response.status();
-    let response_text = response.text().await.map_err(|e| format!("Failed to read response: {}", e))?;
+    let response_text = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
 
     if !status.is_success() {
         return Err(format!("API error ({}): {}", status, response_text));
     }
 
-    let gemini_response: GeminiResponse =
-        serde_json::from_str(&response_text).map_err(|e| format!("Failed to parse API response: {}", e))?;
+    let gemini_response: GeminiResponse = serde_json::from_str(&response_text)
+        .map_err(|e| format!("Failed to parse API response: {}", e))?;
 
     let text_content = gemini_response
         .candidates
@@ -105,8 +111,12 @@ Respond ONLY in this exact JSON format, no markdown, no code fences:
         .unwrap_or(text_content.trim());
     let cleaned = cleaned.strip_suffix("```").unwrap_or(cleaned).trim();
 
-    let result: RewriteResult =
-        serde_json::from_str(cleaned).map_err(|e| format!("Failed to parse rewrite result: {} — raw: {}", e, text_content))?;
+    let result: RewriteResult = serde_json::from_str(cleaned).map_err(|e| {
+        format!(
+            "Failed to parse rewrite result: {} — raw: {}",
+            e, text_content
+        )
+    })?;
 
     Ok(result)
 }
@@ -125,8 +135,19 @@ async fn toggle_window(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Load .env: try ~/.config/looks-like-native/.env, then working directory
+    if let Some(home) = dirs::home_dir() {
+        let config_env = home.join(".config/looks-like-native/.env");
+        if config_env.exists() {
+            let _ = dotenvy::from_path(&config_env);
+        } else {
+            let _ = dotenvy::dotenv();
+        }
+    } else {
+        let _ = dotenvy::dotenv();
+    }
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
