@@ -12,7 +12,7 @@ defineEmits<{
 
 <template>
   <div
-    class="flex items-start gap-2 p-2 bg-gray-900 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer group"
+    class="flex items-start gap-2 p-2 bg-white/[0.04] rounded-lg border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.12] transition-colors cursor-pointer group"
     @click="$emit('copy')"
   >
     <span class="shrink-0 text-[10px] uppercase tracking-wider text-gray-500 mt-0.5 w-20">{{ label }}</span>

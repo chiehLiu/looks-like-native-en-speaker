@@ -85,7 +85,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-gray-100 p-4 select-none font-sans">
+  <div class="min-h-screen bg-[rgba(15,15,20,0.85)] text-gray-100 p-4 select-none font-sans rounded-2xl border border-white/[0.08] shadow-2xl">
     <!-- Drag handle -->
     <div data-tauri-drag-region class="h-3 -mt-2 -mx-4 mb-2 cursor-grab" />
     <!-- Input area -->
@@ -95,13 +95,13 @@ onUnmounted(() => {
         v-model="input"
         placeholder="Type English text to rewrite..."
         rows="2"
-        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 resize-none focus:outline-none focus:border-blue-500 transition-colors"
+        class="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-400 resize-none focus:outline-none focus:border-blue-400/40 transition-colors"
         :disabled="loading"
       />
       <button
         @click="rewrite"
         :disabled="loading || !input.trim()"
-        class="absolute right-2 bottom-2 px-3 py-1 text-xs font-medium rounded-md bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        class="absolute right-2 bottom-2 px-3 py-1 text-xs font-medium rounded-md bg-blue-500/20 border border-blue-400/20 hover:bg-blue-500/30 text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         {{ loading ? "..." : "Rewrite ⌘↵" }}
       </button>
@@ -131,7 +131,7 @@ onUnmounted(() => {
       />
 
       <!-- Notes -->
-      <div v-if="result.notes.length" class="mt-2 p-2 bg-gray-900 rounded-lg border border-gray-800">
+      <div v-if="result.notes.length" class="mt-2 p-2 bg-white/[0.04] rounded-lg border border-white/[0.08]">
         <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Changes</p>
         <ul class="text-xs text-gray-400 space-y-0.5">
           <li v-for="(note, i) in result.notes" :key="i">• {{ note }}</li>
