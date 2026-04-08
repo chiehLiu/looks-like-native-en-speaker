@@ -20,12 +20,12 @@ const error = ref("");
 const copied = ref<string | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 async function rewrite() {
   if (!input.value.trim() || loading.value) return;
   if (!API_KEY || API_KEY === "your-api-key-here") {
-    error.value = "Set VITE_ANTHROPIC_API_KEY in .env";
+    error.value = "Set VITE_GEMINI_API_KEY in .env";
     return;
   }
 
@@ -86,6 +86,8 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-950 text-gray-100 p-4 select-none font-sans">
+    <!-- Drag handle -->
+    <div data-tauri-drag-region class="h-3 -mt-2 -mx-4 mb-2 cursor-grab" />
     <!-- Input area -->
     <div class="relative">
       <textarea
@@ -106,7 +108,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Error -->
-    <p v-if="error" class="mt-2 text-xs text-red-400">{{ error }}</p>
+    <p v-if="error" class="mt-2 text-xs text-red-400 select-text cursor-text break-all">{{ error }}</p>
 
     <!-- Loading -->
     <div v-if="loading" class="mt-4 flex justify-center">

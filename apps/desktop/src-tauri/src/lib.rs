@@ -10,12 +10,22 @@ struct RewriteResult {
 }
 
 #[derive(Deserialize)]
-struct ClaudeResponse {
-    content: Vec<ContentBlock>,
+struct GeminiResponse {
+    candidates: Option<Vec<Candidate>>,
 }
 
 #[derive(Deserialize)]
-struct ContentBlock {
+struct Candidate {
+    content: GeminiContent,
+}
+
+#[derive(Deserialize)]
+struct GeminiContent {
+    parts: Vec<Part>,
+}
+
+#[derive(Deserialize)]
+struct Part {
     text: Option<String>,
 }
 
@@ -41,21 +51,27 @@ Respond ONLY in this exact JSON format, no markdown, no code fences:
         text
     );
 
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
+        api_key
+    );
+
     let body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
-        "max_tokens": 1024,
-        "messages": [
+        "contents": [
             {
-                "role": "user",
-                "content": prompt
+                "parts": [
+                    { "text": prompt }
+                ]
             }
-        ]
+        ],
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 2048
+        }
     });
 
     let response = client
-        .post("https://api.anthropic.com/v1/messages")
-        .header("x-api-key", &api_key)
-        .header("anthropic-version", "2023-06-01")
+        .post(&url)
         .header("content-type", "application/json")
         .json(&body)
         .send()
@@ -69,17 +85,27 @@ Respond ONLY in this exact JSON format, no markdown, no code fences:
         return Err(format!("API error ({}): {}", status, response_text));
     }
 
-    let claude_response: ClaudeResponse =
+    let gemini_response: GeminiResponse =
         serde_json::from_str(&response_text).map_err(|e| format!("Failed to parse API response: {}", e))?;
 
-    let text_content = claude_response
-        .content
-        .iter()
-        .find_map(|block| block.text.as_ref())
+    let text_content = gemini_response
+        .candidates
+        .as_ref()
+        .and_then(|c| c.first())
+        .and_then(|c| c.content.parts.first())
+        .and_then(|p| p.text.as_ref())
         .ok_or("No text in response")?;
 
+    // Strip markdown code fences if present
+    let cleaned = text_content
+        .trim()
+        .strip_prefix("```json")
+        .or_else(|| text_content.trim().strip_prefix("```"))
+        .unwrap_or(text_content.trim());
+    let cleaned = cleaned.strip_suffix("```").unwrap_or(cleaned).trim();
+
     let result: RewriteResult =
-        serde_json::from_str(text_content).map_err(|e| format!("Failed to parse rewrite result: {} — raw: {}", e, text_content))?;
+        serde_json::from_str(cleaned).map_err(|e| format!("Failed to parse rewrite result: {} — raw: {}", e, text_content))?;
 
     Ok(result)
 }
