@@ -1,0 +1,9 @@
+{
+  "name": "looks-like-native-en-speaker",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter desktop dev",
+    "build": "pnpm --filter desktop build",
+    "tauri": "pnpm --filter desktop tauri"
+  }
+}
